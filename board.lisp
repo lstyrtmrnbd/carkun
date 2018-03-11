@@ -1,4 +1,4 @@
-;;;; Puyopuyo board state representation
+;;;; Puyopuyo game states representation
 
 (defvar colors '(red blue purple yellow green trash))
 
@@ -15,9 +15,12 @@
    (height :accessor h :initform 12
            :initarg :h :type integer)
    (states :accessor states
-          :initarg :states)))
+           :initarg :states)))
 
-(defvar state (make-array '() :element-type 'puyo :initial-element nil))
+(defun make-puyo (color)
+  (make-instance 'puyo :col color))
+
+(defvar state (make-array '(12 6) :element-type 'puyo :initial-element nil))
 
 ;;; Puyo Ops
 (defgeneric is-trash (puyo))
@@ -31,12 +34,16 @@
 (defmethod get-dimensions ((s state))
   (array-dimensions (arr s)))
 
-(defgeneric get-puyo)      ;; gets a puyo at an x,y for a board/state?
+(defgeneric get-puyo (s x y)) ;; gets a puyo at an x,y for a board/state?
+
+(defmethod get-puyo ((s state) (x integer) (y integer))
+  (aref (arr s) x y))
+
 (defgeneric is-resolved)   ;; checks for outstanding chains in a state
 
 ;;; Board Ops
 (defmethod get-dimensions ((b board))
-  (list (w b) (h b)))
+  (list (h b) (w b)))
 
 (defgeneric state-count)   ;; amount of states in a board
 (defgeneric add-state)     ;; push a state to the board state stack
