@@ -6,9 +6,7 @@
   ((color :accessor color :initarg :color)))
 
 (defclass state ()
-  ((width :accessor w :initarg :w :type integer)
-   (height :accessor h :initarg :h :type integer)
-   (array :accessor arr :initarg :arr)
+  ((array :accessor arr :initarg :arr)
    (resolved :accessor res :initform t)))
 
 (defclass board ()
@@ -23,7 +21,7 @@
   (make-instance 'puyo :color color))
 
 (defun make-state (h w)
-  (make-instance 'state :h h :w w :arr (make-array (list h w) :initial-element nil)))
+  (make-instance 'state :arr (make-array (list h w) :initial-element nil)))
 
 (defun make-board ()
   (make-instance 'board))
@@ -61,23 +59,24 @@
 
 (defun push-state (state board)
   (when (not (equal (get-dimensions state)
-                    (list (h board) (w board))))
+                    (get-dimensions board)))
     (error "Board and state dimension mismatch."))
   (push state (states board)))
 
 (defun print-state (b index)
   (let  ((state (nth index (states b))))
-    (dotimes (y (1- (h state)))
-      (dotimes (x (1- (w state)))
-        (let ((p (aref (arr state) y x)))
-          (cond ((null p) (format t " . "))
-                ((eq (color p) 'purple) (format t " p "))
-                ((eq (color p) 'red) (format t " r "))
-                ((eq (color p) 'green) (format t " g "))
-                ((eq (color p) 'blue) (format t " b "))
-                ((eq (color p) 'yellow) (format t " y "))
-                ((eq (color p) 'trash) (format t " x ")))))
-      (format t "~%"))))
+    (destructuring-bind (h w) (array-dimensions (arr state))
+      (loop for y from (1- h) downto 0 do
+           (loop for x from (1- w) downto 0 do
+                (let ((p (aref (arr state) y x)))
+                  (cond ((null p) (format t " . "))
+                        ((eq (color p) 'purple) (format t " p "))
+                        ((eq (color p) 'red) (format t " r "))
+                        ((eq (color p) 'green) (format t " g "))
+                        ((eq (color p) 'blue) (format t " b "))
+                        ((eq (color p) 'yellow) (format t " y "))
+                        ((eq (color p) 'trash) (format t " x ")))))
+           (format t "~%")))))
     
 (defgeneric add-state ()) ;; push a state to the board state stack
 
