@@ -67,7 +67,7 @@
   (let  ((state (nth index (states b))))
     (destructuring-bind (h w) (array-dimensions (arr state))
       (loop for y from (1- h) downto 0 do
-           (loop for x from (1- w) downto 0 do
+           (loop for x from 0 below w do
                 (let ((p (aref (arr state) y x)))
                   (cond ((null p) (format t " . "))
                         ((eq (color p) 'purple) (format t " p "))
