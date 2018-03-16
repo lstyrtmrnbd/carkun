@@ -38,9 +38,7 @@
 (defun make-puyo (color)
   (make-instance 'puyo :color color))
 
-(defgeneric make-puyopuyo (puyos))
-
-(defmethod make-puyopuyo ((puyos array))
+(defun make-puyopuyo (puyos)
   (make-instance 'puyopuyo :puyos puyos))
 
 (defun make-state (h w)
@@ -49,18 +47,20 @@
 (defun make-board ()
   (make-instance 'board))
 
-(defun make-board (&rest states)
+(defun make-board-with-state (states)
   (make-instance 'board :states states))
 
 ;;; Puyo Ops
 
-(defgeneric is-trash (puyo))
+(defun is-trash (puyo)
+  (eq (color puyo) 'trash))
 
-(defmethod is-trash ((p puyo))
-  (eq (col p) 'trash))
+(defun get-colors (puyopuyo)
+  (destructuring-bind (h w) (array-dimensions (puyos puyopuyo))
+    (loop for y from 0 below h do
+         (loop for x from 0 below w collect (color (aref (puyos puyopuyo) x y))))))
 
-(defun rotate (puyos)
-  ())
+(defun rotate (puyos &optional (clockwise nil)) nil)
 
 ;;; State Ops
 
@@ -69,12 +69,8 @@
 (defmethod get-dimensions ((s state))
   (array-dimensions (arr s)))
 
-(defgeneric get-puyo (s x y)) ;; gets a puyo at an x,y for a board/state?
-
-(defmethod get-puyo ((s state) (x integer) (y integer))
-  (aref (arr s) x y))
-
-(defgeneric set-puyo ())
+(defun get-puyo (state x y)
+  (aref (arr state) x y))
 
 (defun set-puyo (state puyo x y)
   (setf (aref (arr state) x y) puyo))
@@ -83,6 +79,7 @@
   "Check if board is resolved: no outstanding chains.")
 
 ;;; Board Ops
+
 (defmethod get-dimensions ((b board))
   (list (h b) (w b)))
 
@@ -109,11 +106,6 @@
                         ((eq (color p) 'yellow) (format t " y "))
                         ((eq (color p) 'trash) (format t " x ")))))
            (format t "~%")))))
-    
-(defgeneric add-state ()) ;; push a state to the board state stack
-
-(defgeneric project-states ()) ;; give next puyo drop and project resultant states
-
 
 (defun settledp (state)
   "Check that no pieces have empty space below them."
@@ -124,6 +116,8 @@
                       (null (aref (arr state) (1- y) x)))
              (return-from settledp nil)))))
   t)
+
+(defun project-states () nil) ;; give next puyo drop and project resultant states
 
 ;;; Testing
 
