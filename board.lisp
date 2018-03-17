@@ -38,7 +38,9 @@
 (defun make-puyo (color)
   (make-instance 'puyo :color color))
 
+;; maybe add switch to fill up along i or out along j
 (defun make-simple-puyos (puyo-list)
+  "Makes an array large enough to contain the listed puyos and fills it."
   (let* ((near (nearest-square (length puyo-list)))
          (puyos (make-array `(,near ,near))))
     (loop for i from 0 below near do
