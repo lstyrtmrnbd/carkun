@@ -38,6 +38,24 @@
 (defun make-puyo (color)
   (make-instance 'puyo :color color))
 
+(defun make-simple-puyos (puyo-list)
+  (let* ((near (nearest-square (length puyo-list)))
+         (puyos (make-array `(,near ,near))))
+    (loop for i from 0 below near do
+         (loop for j from 0 below near do
+              (setf (aref puyos i j) (nth (+ (* i near) j) puyo-list))))
+    puyos))
+
+(defun nearest-square (limit)
+  "Returns the side length of a square large enough to encompass limit."
+  (let ((i 1))
+    (loop while (< (* i i) limit) do
+         (incf i))
+    i))
+
+(defun make-double-puyos (puyo)
+  (make-array 2 :initial-element puyo))
+
 (defun make-puyopuyo (puyos)
   (make-instance 'puyopuyo :puyos puyos))
 
@@ -60,6 +78,7 @@
     (loop for y from 0 below h do
          (loop for x from 0 below w collect (color (aref (puyos puyopuyo) x y))))))
 
+;; shifts puyos in their array once to simulate rotation
 (defun rotate (puyos &optional (clockwise nil)) nil)
 
 ;;; State Ops
