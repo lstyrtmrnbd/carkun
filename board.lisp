@@ -75,16 +75,37 @@
 (defun is-trash (puyo)
   (eq (color puyo) 'trash))
 
-(defun get-colors (puyopuyo)
+(defun get-colors (puyos)
   (let ((colors '()))
-    (destructuring-bind (h w) (array-dimensions (puyos puyopuyo))
+    (destructuring-bind (h w) (array-dimensions puyos)
       (loop for y from 0 below h do
            (loop for x from 0 below w do
-                (push (color (aref (puyos puyopuyo) x y)) colors))))
+                (push (color (aref puyos x y)) colors))))
     colors))
 
-;; has to check if 4+ same colors touch
-(defun has-combo (puyopuyo) nil)
+;; check if there's outstanding combos in a puyos array using
+;; hashing and a flood-fill variant
+(defun has-combo (puyos)
+  (let ((open-set (make-hash-table :test #'equal :size 96))
+        (closed-set (make-hash-table :test #'equal :size 96)))
+    (hash-puyos puyos open-set)
+    (loop for color in (remove 'trash *colors*) do
+         ())))
+
+;; put whole puyo or just color?
+(defun hash-puyos (puyos hash-table)
+  (destructuring-bind (h w) (array-dimensions puyos)
+    (loop for y from 0 below h do
+         (loop for x from 0 below w do
+              (setf (gethash (list x y) hash-table) (color (aref puyos y x)))))))
+
+(defun in-bounds (refs array)
+  (destructuring-bind (h w) (array-dimensions array)
+    (destructuring-bind (y x) refs
+      (and (<= 0 y)
+           (>= (1- h) y)
+           (<= 0 x)
+           (>= (1- w) x)))))
 
 ;; shifts puyos in their array once to simulate rotation
 (defun rotate (puyos &optional (clockwise nil)) nil)
@@ -94,7 +115,7 @@
 (defgeneric get-dimensions (object)) ;; board or state dimensions
 
 (defmethod get-dimensions ((s state))
-  (array-dimensions (puyo s)))
+  (array-dimensions (puyos s)))
 
 (defun get-puyo (state x y)
   (aref (puyos state) x y))
@@ -105,7 +126,7 @@
 (defun set-puyos (state puyos x y) nil)
 
 (defun resolvedp ()
-  "Check if board is resolved: no outstanding chains.")
+  "Check if state is resolved: no outstanding chains.")
 
 ;;; Board Ops
 
@@ -152,4 +173,4 @@
 
 (defvar tmpboard (make-board))
 (defvar state (make-array '(12 6) :element-type 'puyo :initial-element nil))
-(defvar 2gpuyo (make-puyos (list (make-puyo 'green) (make-puyo 'green))))
+(defvar 2gpuyo (make-simple-puyos (list (make-puyo 'green) (make-puyo 'green))))
