@@ -97,7 +97,11 @@
   (destructuring-bind (h w) (array-dimensions puyos)
     (loop for y from 0 below h do
          (loop for x from 0 below w do
-              (setf (gethash (list x y) hash-table) (color (aref puyos y x)))))))
+              (setf (gethash (list x y) hash-table) (aref puyos y x)))))
+  (maphash #'(lambda (key value)
+               (when (null value)
+                 (remhash key hash-table)))
+           hash-table))
 
 (defun in-bounds (refs array)
   (destructuring-bind (h w) (array-dimensions array)
