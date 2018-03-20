@@ -100,7 +100,9 @@
     (loop for y from 0 below h do
          (loop for x from 0 below w do
               (when (aref puyos y x)
-                (flood-fill y x puyos))))))
+                (when (< 3 (length (flood-fill y x puyos)))
+                  (return-from check-combo t)))))
+    nil))
 
 (defstruct (queue)
   (elements))
@@ -117,6 +119,7 @@
   (= 0 (length (queue-elements queue))))
 
 (defun flood-fill (y x puyos)
+  "Flood fill variant returns list of same color puyos next to the puyo at (y x)."
   (let ((combo nil)
         (rep-color (color (aref puyos y x)))
         (Q (make-queue :elements nil))
