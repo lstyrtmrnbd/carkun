@@ -224,17 +224,21 @@
 
 (defun settledp (puyos)
   "Check that no pieces have empty space below them."
+  (not (unsettled puyos)))
+
+(defun unsettled (puyos)
+  "Returns the coords of the first unsettled column."
   (destructuring-bind (h w) (array-dimensions puyos)
     (loop for y from 1 below h do
          (loop for x from 0 below w do
-              (when (and (not (null (aref puyos y x)))
+              (when (and (aref puyos y x)
                          (null (aref puyos (1- y) x)))
-                (return-from settledp nil)))))
-  t)
+                (return-from unsettled (list (1- y) x)))))
+    nil))
 
-(defun settle (state)
+(defun settle (puyos)
   "Moves puyos down until settledp is true."
-  nil)
+  )
 
 (defun project-states () nil) ;; give next puyo drop and project resultant states
 
