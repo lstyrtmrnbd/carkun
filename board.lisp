@@ -96,12 +96,11 @@
            hash-table))
 
 (defun check-combo (puyos)
-  (let ((combos nil))
-    (destructuring-bind (h w) (array-dimensions puyos)
-      (loop for y from 0 below h do
-           (loop for x from 0 below w do
-                (when (aref puyos y x)
-                  (flood-fill y x puyos (color (aref puyos y x)) combos)))))))
+  (destructuring-bind (h w) (array-dimensions puyos)
+    (loop for y from 0 below h do
+         (loop for x from 0 below w do
+              (when (aref puyos y x)
+                (flood-fill y x puyos))))))
 
 (defstruct (queue)
   (elements))
@@ -113,6 +112,52 @@
   (let ((popped (car (last (queue-elements queue)))))
     (setf (queue-elements queue) (butlast (queue-elements queue)))
     popped))
+
+(defun is-empty-queue (queue)
+  (= 0 (length (queue-elements queue))))
+
+(defun flood-fill (y x puyos)
+  (let ((combo nil)
+        (rep-color (color (aref puyos y x)))
+        (Q (make-queue :elements nil))
+        (currefs nil))
+    (push (list y x) combo)
+    (push-queue (list y x) Q)
+    (loop while (not (is-empty-queue Q)) do
+         (setf currefs (pop-queue Q))
+         (destructuring-bind (u v) currefs
+           (let ((north (list (1+ u) v))
+                 (south (list (1- u) v))
+                 (east  (list u (1+ v)))
+                 (west  (list u (1- v))))
+             (when (is-valid-flood-node north rep-color puyos combo)
+               (push-queue north Q)
+               (push north combo))
+             (when (is-valid-flood-node south rep-color puyos combo)
+               (push-queue south Q)
+               (push south combo))
+             (when (is-valid-flood-node east rep-color puyos combo)
+               (push-queue east Q)
+               (push east combo))
+             (when (is-valid-flood-node west rep-color puyos combo)
+               (push-queue west Q)
+               (push west combo)))))
+    combo))
+
+(defun is-valid-flood-node (refs rep-color puyos combo)
+  (and (in-bounds refs puyos)
+       (arefs refs puyos)
+       (eq rep-color (color (arefs refs puyos)))
+       (not (refs-in-list refs combo))))
+
+(defun refs-in-list (refs list)
+  (some #'(lambda (val)
+            (equal val refs))
+        list))
+
+(defun arefs (refs array)
+  (destructuring-bind (y x) refs
+    (aref array y x)))
 
 (defun in-bounds (refs array)
   (destructuring-bind (h w) (array-dimensions array)
