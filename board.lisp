@@ -80,7 +80,8 @@
     (destructuring-bind (h w) (array-dimensions puyos)
       (loop for y from 0 below h do
            (loop for x from 0 below w do
-                (push (color (aref puyos x y)) colors))))
+                (when (aref puyos y x)
+                  (push (color (aref puyos y x)) colors)))))
     colors))
 
 ;; probably no longer necessary
@@ -96,6 +97,7 @@
            hash-table))
 
 (defun check-combo (puyos)
+  "Is there a combo in puyos array"
   (destructuring-bind (h w) (array-dimensions puyos)
     (loop for y from 0 below h do
          (loop for x from 0 below w do
@@ -119,7 +121,7 @@
   (= 0 (length (queue-elements queue))))
 
 (defun flood-fill (y x puyos)
-  "Flood fill variant returns list of same color puyos next to the puyo at (y x)."
+  "Flood fill variant returns list of coords of same color puyos connected to the puyo at (y x)."
   (let ((combo nil)
         (rep-color (color (aref puyos y x)))
         (Q (make-queue :elements nil))
