@@ -42,7 +42,7 @@
 (defun make-simple-puyos (puyo-list)
   "Makes an array large enough to contain the listed puyos and fills it."
   (let* ((near (nearest-square (length puyo-list)))
-         (puyos (make-array `(,near ,near) :initial-element nil)))
+         (puyos (make-array (list near near) :initial-element nil)))
     (loop for i from 0 below near do
          (loop for j from 0 below near do
               (setf (aref puyos i j) (nth (+ (* i near) j) puyo-list))))
@@ -222,15 +222,19 @@
                         ((eq (color p) 'trash) (format t " x ")))))
            (format t "~%")))))
 
-(defun settledp (state)
+(defun settledp (puyos)
   "Check that no pieces have empty space below them."
-  (destructuring-bind (h w) (array-dimensions (puyos state))
+  (destructuring-bind (h w) (array-dimensions puyos)
     (loop for y from 1 below h do
-      (loop for x from 0 below w do
-           (when (and (not (null (aref (puyos state) y x)))
-                      (null (aref (puyos state) (1- y) x)))
-             (return-from settledp nil)))))
+         (loop for x from 0 below w do
+              (when (and (not (null (aref puyos y x)))
+                         (null (aref puyos (1- y) x)))
+                (return-from settledp nil)))))
   t)
+
+(defun settle (state)
+  "Moves puyos down until settledp is true."
+  nil)
 
 (defun project-states () nil) ;; give next puyo drop and project resultant states
 
