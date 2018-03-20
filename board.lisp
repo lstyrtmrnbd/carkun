@@ -236,14 +236,23 @@
                 (return-from unsettled (list (1- y) x)))))
     nil))
 
-(defun settle (puyos)
-  "Moves puyos down until settledp is true."
-  )
+(defun settle (refs puyos)
+  "Shifts puyos above refs down."
+  (destructuring-bind (ry rx) refs
+    (loop for y from 0 below (- (first (array-dimensions puyos)) (1+ ry)) do
+         (setf (aref puyos (+ ry y) rx)
+               (aref puyos (+ ry (1+ y)) rx)))
+    (setf (aref puyos (1- (first (array-dimensions puyos))) rx)
+          nil)))
 
 (defun project-states () nil) ;; give next puyo drop and project resultant states
 
 ;;; Testing
 
-(defvar tmpboard (make-board))
-(defvar state (make-array '(12 6) :element-type 'puyo :initial-element nil))
-(defvar 2gpuyo (make-simple-puyos (list (make-puyo 'green) (make-puyo 'green))))
+(defvar *tmpboard* (make-board))
+(defvar *state* (make-array '(12 6) :element-type 'puyo :initial-element nil))
+(defvar *2gpuyo* (make-simple-puyos (list (make-puyo 'green) (make-puyo 'green))))
+(defvar *unsettled* (make-array '(2 2) :initial-element nil))
+
+(defun init-test ()
+  (setf (aref *unsettled* 1 0) (make-puyo 'blue)))
