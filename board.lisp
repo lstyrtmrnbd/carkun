@@ -42,7 +42,7 @@
 (defun make-simple-puyos (puyo-list)
   "Makes an array large enough to contain the listed puyos and fills it."
   (let* ((near (nearest-square (length puyo-list)))
-         (puyos (make-array `(,near ,near))))
+         (puyos (make-array `(,near ,near) :initial-element nil)))
     (loop for i from 0 below near do
          (loop for j from 0 below near do
               (setf (aref puyos i j) (nth (+ (* i near) j) puyo-list))))
@@ -83,17 +83,9 @@
                 (push (color (aref puyos x y)) colors))))
     colors))
 
-;; check if there's outstanding combos in a puyos array using
-;; hashing and a flood-fill variant
-(defun has-combo (puyos)
-  (let ((open-set (make-hash-table :test #'equal :size 96))
-        (closed-set (make-hash-table :test #'equal :size 96)))
-    (hash-puyos puyos open-set)
-    (loop for color in (remove 'trash *colors*) do
-         ())))
-
-;; put whole puyo or just color?
+;; probably no longer necessary
 (defun hash-puyos (puyos hash-table)
+  "Fills a hash table with the existing puyos using their array indices as key."
   (destructuring-bind (h w) (array-dimensions puyos)
     (loop for y from 0 below h do
          (loop for x from 0 below w do
@@ -102,6 +94,28 @@
                (when (null value)
                  (remhash key hash-table)))
            hash-table))
+
+(defun check-combo (puyos)
+  (let ((combos nil))
+    (destructuring-bind (h w) (array-dimensions puyos)
+      (loop for y from 0 below h do
+           (loop for x from 0 below w do
+                (when (aref puyos y x)
+                  (flood-fill y x puyos (color (aref puyos y x)) combos)))))))
+
+(defun flood-fill (y x array rep-color results)
+  (cond ((not (in-bounds (list y x) array))
+         nil)
+        ((null (aref array y x))
+         nil)
+        ((not (eq rep-color (color (aref array y x))))
+         nil)
+        ((eq rep-color (color (aref array y x)))
+         (progn (push (list y x) results)
+                (flood-fill y (1- x) array rep-color results)
+                (flood-fill y (1+ x) array rep-color results)
+                (flood-fill (1- y) x array rep-color results)
+                (flood-fill (1+ y) x array rep-color results)))))
 
 (defun in-bounds (refs array)
   (destructuring-bind (h w) (array-dimensions array)
