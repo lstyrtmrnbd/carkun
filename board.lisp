@@ -222,12 +222,16 @@
                         ((eq (color p) 'trash) (format t " x ")))))
            (format t "~%")))))
 
+(defun stablep (puyos)
+  (and (settledp puyos)
+       (not (combo-check puyos))))
+
 (defun settledp (puyos)
   "Check that no pieces have empty space below them."
   (not (unsettled puyos)))
 
 (defun unsettled (puyos)
-  "Returns the coords of the first unsettled column."
+  "Returns the coords of the first unsettled point."
   (destructuring-bind (h w) (array-dimensions puyos)
     (loop for y from 1 below h do
          (loop for x from 0 below w do
@@ -236,14 +240,21 @@
                 (return-from unsettled (list (1- y) x)))))
     nil))
 
-(defun settle (refs puyos)
-  "Shifts puyos above refs down."
+(defun settle-col (refs puyos)
+  "Shifts puyos above refs point down."
   (destructuring-bind (ry rx) refs
     (loop for y from 0 below (- (first (array-dimensions puyos)) (1+ ry)) do
          (setf (aref puyos (+ ry y) rx)
                (aref puyos (+ ry (1+ y)) rx)))
-    (setf (aref puyos (1- (first (array-dimensions puyos))) rx)
+    (setf (aref puyos (1- (first (array-dimensions puyos))) rx) ; special case for top of column
           nil)))
+
+(defun settle (puyos)
+  "Settles all puyos in puyos."
+  (let ((uns (unsettled puyos)))
+    (loop while uns do
+         (settle-col uns puyos)
+         (setf uns (unsettled puyos)))))
 
 (defun project-states () nil) ;; give next puyo drop and project resultant states
 
@@ -255,4 +266,5 @@
 (defvar *unsettled* (make-array '(2 2) :initial-element nil))
 
 (defun init-test ()
-  (setf (aref *unsettled* 1 0) (make-puyo 'blue)))
+  (setf (aref *unsettled* 1 0) (make-puyo 'blue))
+  (push-stat *state* *tmpboard*))
